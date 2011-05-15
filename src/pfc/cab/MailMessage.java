@@ -22,6 +22,7 @@
 
 package pfc.cab;
 
+import java.io.*;
 import java.text.*;
 import java.util.*;
 import java.util.zip.*;
@@ -72,7 +73,7 @@ public class MailMessage {
         // Parse message content into blocks.
         ArrayList blockList = ItemBlock.parseItemContent(content);
         
-        StringBuffer bodyBuffer = new StringBuffer();
+        ByteArrayOutputStream bodyBuffer = new ByteArrayOutputStream();
         StringBuffer headBuffer = new StringBuffer();
         Inflater inflater = new Inflater(true);
         boolean v7Message = false;
@@ -154,7 +155,7 @@ public class MailMessage {
                             }
                             else {
                                 // pre-V7 body text
-                                bodyBuffer.append(new String(data));
+                                bodyBuffer.write(data, 0, data.length);
                             }
                         }
                         break;
@@ -174,7 +175,7 @@ public class MailMessage {
                       case 256:
                         // V7 body text - skip first piece
                         if (!firstData) {
-                            bodyBuffer.append(unpackData(data, inflater));
+                            unpackData(data, inflater, bodyBuffer);
                         }
                         firstData = false;
                         break;
@@ -514,21 +515,23 @@ public class MailMessage {
      *  Uncompresses byte array into a character string.  This is applied
      *  to mail content saved in later versions.
      */
-    private String unpackData(byte[] data, Inflater inflater) {
-        StringBuffer result = new StringBuffer();
+    private void unpackData(byte[] data, Inflater inflater,
+                            ByteArrayOutputStream stream) {
         String separator = System.getProperty("line.separator");
         // Set input byte array, and create output buffer.
         inflater.setInput(data);
-        byte[] buffer = new byte[(10 * data.length)];
+        InflaterOutputStream ios = new InflaterOutputStream(stream, inflater);
         try {
-            // Uncompress bytes into buffer, and convert to text.
-            int length = inflater.inflate(buffer, 0, (10 * data.length));
-            result.append(new String(buffer, 0, length));
+            // Uncompress bytes into buffer
+            ios.write(data, 0, data.length);
+        } catch (IOException ex) {
+            try {
+                stream.write((separator + ex.toString()).getBytes());
+            } catch (IOException ioex) {
+                // shouldn't happen -- ByteArrayOutputStreams can't be closed
+                ioex.printStackTrace();
+            }
         }
-        catch (DataFormatException dfx) {
-            result.append(separator).append(dfx.toString());
-        }
-        return result.toString();
     }
 
 }
