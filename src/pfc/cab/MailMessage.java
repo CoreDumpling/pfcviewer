@@ -48,7 +48,8 @@ public class MailMessage {
     private String replyTo;
     private String recipient;
     private String subject;
-    private String body;
+    private byte[] body;
+    private String bodyText;
 
     // AOL fields
     private byte[] check;
@@ -199,7 +200,8 @@ public class MailMessage {
         }       // end of loop through item blocks.
         
         inflater.end();
-        body = bodyBuffer.toString();
+        body = bodyBuffer.toByteArray();
+        bodyText = new String(body);
         mailHeader = headBuffer.toString();
         if (from == null) { from = screenname; }
     }
@@ -237,7 +239,7 @@ public class MailMessage {
         return subject;
     }
 
-    public String getBody() {
+    public byte[] getBody() {
         return body;
     }
     
@@ -249,8 +251,8 @@ public class MailMessage {
      *  Returns true if body text includes &lt;html&gt; tag.
      */
     public boolean isHtml() {
-        int htmlStart = body.indexOf("<html>");
-        if (htmlStart < 0) { htmlStart = body.indexOf("<HTML>"); }
+        int htmlStart = bodyText.indexOf("<html>");
+        if (htmlStart < 0) { htmlStart = bodyText.indexOf("<HTML>"); }
         if (htmlStart < 0) {
             return false;
         } else {
@@ -283,7 +285,7 @@ public class MailMessage {
      *  document.  AOL inserts these for display in its HTML-enabled window.
      */
     public String getBodyText() {
-        StringBuffer buffer = new StringBuffer(body);
+        StringBuffer buffer = new StringBuffer(bodyText);
         String separator = System.getProperty("line.separator");
         boolean htmlDoc = false;
         int pos = 0;
