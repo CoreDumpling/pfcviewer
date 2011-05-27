@@ -36,10 +36,10 @@ public class MboxFile {
     private PrintWriter out;
     
     /** Creates a new instance of MboxFile */
-    public MboxFile(File mboxFile) {
+    public MboxFile(File mboxFile) throws FileNotFoundException {
         this.mboxFile = mboxFile;
-        dos = null;
-        out = null;
+        dos = new DataOutputStream(new FileOutputStream(mboxFile));
+        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(dos)));
     }
 
     /** Returns File object representing mbox path and file name.
@@ -52,14 +52,15 @@ public class MboxFile {
      *  is filtered through a DataOutputStream so we can access the number
      *  of bytes written to the file.
      */
-    public PrintWriter getPrintWriter() throws IOException {
-        // Create output stream and print writer if necessary.
-        if (out == null) {
-            dos = new DataOutputStream(new FileOutputStream(mboxFile));
-            out = new PrintWriter(
-                new BufferedWriter(new OutputStreamWriter(dos)));
-        }
+    public PrintWriter getPrintWriter() {
         return out;
+    }
+
+    /** Returns data output stream for raw byte output to mbox file.
+     *  Need to flush this and PrintWriter is they are being used together.
+     */
+    public DataOutputStream getDataOutputStream() {
+        return dos;
     }
     
     /** Returns number of bytes written to mbox file.

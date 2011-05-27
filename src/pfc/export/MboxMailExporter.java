@@ -49,7 +49,11 @@ public class MboxMailExporter implements Exporter {
     /** Sets file to receive exported items.
      */
     public void setFile(File exportFile) {
-        mbox = new MboxFile(exportFile);
+        try {
+            mbox = new MboxFile(exportFile);
+        } catch (FileNotFoundException ex) {
+            System.err.println("Unable to set mbox file: " + exportFile);
+        }
     }
     
     /** Returns true if cabinet item is valid for export.  For mbox mail
@@ -80,6 +84,7 @@ public class MboxMailExporter implements Exporter {
     public void export(CabinetItem envelope, CabinetItem item) 
         throws IOException {
         PrintWriter out = mbox.getPrintWriter();
+        DataOutputStream dos = mbox.getDataOutputStream();
         // Create mail message by parsing item contents.
         MailMessage message = new MailMessage(item.getContent());
         Date date = message.getDate();
@@ -98,7 +103,10 @@ public class MboxMailExporter implements Exporter {
             out.println("[" + attachment + "]");
         }
         // Write body, and blank line at end of message.
-        out.println(indentFromInBody(message.getBodyText()));
+        byte[] body = message.getBody();
+        out.flush();
+        dos.write(body, 0, body.length);
+        dos.flush();
         out.println();
         out.flush();
         // Increment message count.
