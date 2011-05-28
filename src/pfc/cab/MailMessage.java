@@ -319,7 +319,8 @@ public class MailMessage {
             ListIterator it = headerList.listIterator();
             while (it.hasNext()) {
                 String header = (String) it.next();
-                if (header.startsWith("Content-Type:") && isHtml()) {
+                if (header.toLowerCase().startsWith("content-type:") &&
+                        isHtml()) {
                     buffer.append("Content-Type: text/html").append(separator);
                 } else {
                     buffer.append(header).append(separator);
