@@ -335,6 +335,9 @@ public class MailMessage {
                         // probably okay to use original content-type
                         buffer.append(header).append(separator);
                     }
+                } else if (lc.startsWith("content-transfer-encoding:")) {
+                    // ignore this one -- AOL does not seem to store base-64
+                    // encoded messages, so don't confuse other mail readers
                 } else {
                     buffer.append(header).append(separator);
                 }
