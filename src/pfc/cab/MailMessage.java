@@ -298,6 +298,31 @@ public class MailMessage {
             buffer.append("To: ").append(to).append(separator);
             buffer.append("From: ").append(from).append(separator);
             buffer.append("Subject: ").append(subject).append(separator);
+            if (isHtml()) {
+                buffer.append("Content-Type: text/html").append(separator);
+            }
+            return buffer.toString();
+        }
+    }
+
+    /**
+     *  Returns mail header with modifications for better export compatibility.
+     */
+    public String getMailHeaderForExport() {
+        if (mailHeader == null || mailHeader.trim().length() == 0) {
+            return getMailHeader();
+        } else {
+            StringBuffer buffer = new StringBuffer();
+            String separator = System.getProperty("line.separator");
+            ListIterator it = headerList.listIterator();
+            while (it.hasNext()) {
+                String header = (String) it.next();
+                if (header.startsWith("Content-Type:") && isHtml()) {
+                    buffer.append("Content-Type: text/html").append(separator);
+                } else {
+                    buffer.append(header).append(separator);
+                }
+            }
             return buffer.toString();
         }
     }

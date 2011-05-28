@@ -96,7 +96,7 @@ public class MboxMailExporter implements Exporter {
             out.println("From - " + message.getDateString());
         }
         // Write header, and blank line before body.
-        out.println(message.getMailHeader());
+        out.println(message.getMailHeaderForExport());
         out.println();
         // Insert attachment name if available.
         if (attachment != null) {
