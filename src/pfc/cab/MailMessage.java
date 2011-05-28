@@ -319,9 +319,22 @@ public class MailMessage {
             ListIterator it = headerList.listIterator();
             while (it.hasNext()) {
                 String header = (String) it.next();
-                if (header.toLowerCase().startsWith("content-type:") &&
-                        isHtml()) {
-                    buffer.append("Content-Type: text/html").append(separator);
+                String lc = header.toLowerCase();
+                if (lc.startsWith("content-type:")) {
+                    if (isHtml()) {
+                        // force HTML mode
+                        buffer.append("Content-Type: text/html");
+                        buffer.append(separator);
+                    } else if (lc.contains("multipart")) {
+                        // ignore this one -- AOL does not seem to preserve the
+                        // other parts of a multipart message, so don't make
+                        // other mail readers expect them to be present
+                        // (this would otherwise create bogus "file attached"
+                        // icons in Thunderbird, for example)
+                    } else {
+                        // probably okay to use original content-type
+                        buffer.append(header).append(separator);
+                    }
                 } else {
                     buffer.append(header).append(separator);
                 }
