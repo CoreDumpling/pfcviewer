@@ -50,6 +50,7 @@ public class MailMessage {
     private String subject;
     private byte[] body;
     private String bodyText;
+    private LinkedList headerList;
 
     // AOL fields
     private byte[] check;
@@ -203,6 +204,28 @@ public class MailMessage {
         body = bodyBuffer.toByteArray();
         bodyText = new String(body);
         mailHeader = headBuffer.toString();
+
+        // split mail header into individual records
+        headerList = new LinkedList();
+        BufferedReader br = new BufferedReader(new StringReader(mailHeader));
+        String line = null;
+        String separator = System.getProperty("line.separator");
+        try {
+            while ((line = br.readLine()) != null) {
+                if (line.length() > 0 &&
+                    Character.isWhitespace(line.charAt(0))) {
+                    if (headerList.size() > 0) {
+                        headerList.add(headerList.removeLast() + separator +
+                                line);
+                    }
+                } else {
+                    headerList.add(line);
+                }
+            }
+        } catch (IOException ex) {
+            // shouldn't happen -- can't close a stream from a StringReader
+        }
+
         if (from == null) { from = screenname; }
     }
 
