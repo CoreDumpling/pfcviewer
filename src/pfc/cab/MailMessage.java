@@ -274,13 +274,15 @@ public class MailMessage {
      *  Returns true if body text includes &lt;html&gt; tag.
      */
     public boolean isHtml() {
-        int htmlStart = bodyText.indexOf("<html>");
-        if (htmlStart < 0) { htmlStart = bodyText.indexOf("<HTML>"); }
-        if (htmlStart < 0) {
-            return false;
-        } else {
-            return true;
+        String lc = bodyText.toLowerCase();
+        String tags[] = {"<html", "<!doctype", "<meta", "<head", "<body", "<br",
+            "<div", "<hr", "<table"};
+        for (int i = 0; i < tags.length; ++i) {
+            if (lc.contains(tags[i])) {
+                return true;
+            }
         }
+        return false;
     }
     
     /**
