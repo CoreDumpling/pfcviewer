@@ -187,7 +187,7 @@ public class MailMessage {
                         break;
                       case 259:
                         // body text? (TODO: Verify for all versions)
-                        bodyBuffer.append(new String(data));
+                        bodyBuffer.write(data, 0, data.length);
                         break;
                       case 260:
                         // End of V7 header
