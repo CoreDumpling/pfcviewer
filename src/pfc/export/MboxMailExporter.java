@@ -141,8 +141,16 @@ public class MboxMailExporter implements Exporter {
     private byte[] indentFromInBody(byte[] body) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         String separator = System.getProperty("line.separator");
-        byte fromAtStart[] = (separator + "From ").getBytes();
-        byte fromEscaped[] = (separator + ">From ").getBytes();
+        byte fromAtStart[];
+        byte fromEscaped[];
+        try {
+            fromAtStart = (separator + "From ").getBytes("US-ASCII");
+            fromEscaped = (separator + ">From ").getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException ex) {
+            // should never happen -- Java is required to support "US-ASCII"
+            fromAtStart = (separator + "From ").getBytes();
+            fromEscaped = (separator + ">From ").getBytes();
+        }
         int b = 0;
         int f = 0;
         // First, check the degenerate case - message body starts with "From "
