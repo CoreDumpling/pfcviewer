@@ -103,9 +103,9 @@ public class MboxMailExporter implements Exporter {
             out.println("[" + attachment + "]");
         }
         // Write body, and blank line at end of message.
-        byte[] body = message.getBody();
         out.flush();
-        dos.write(body, 0, body.length);
+        byte[] bodyEscaped = indentFromInBody(message.getBody());
+        dos.write(bodyEscaped, 0, bodyEscaped.length);
         dos.flush();
         out.println();
         out.flush();
@@ -138,19 +138,60 @@ public class MboxMailExporter implements Exporter {
      *  lines are quoted by inserting a &gt; character at the start.  This
      *  distinguishes the lines from the first line of an mbox mail message.
      */
-    private String indentFromInBody(String body) {
-        StringBuffer buffer = new StringBuffer(body);
-        // Set up search string.
+    private byte[] indentFromInBody(byte[] body) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         String separator = System.getProperty("line.separator");
-        String fromAtStart = new String(separator + "From ");
-        // Search for occurrences of From at start of line.
-        int pos = buffer.indexOf(fromAtStart);
-        while (pos >= 0) {
-            // Insert symbol to quote line.
-            buffer.insert(pos + separator.length(), '>');
-            pos = buffer.indexOf(fromAtStart, pos + fromAtStart.length());
+        byte fromAtStart[];
+        byte fromEscaped[];
+        try {
+            fromAtStart = (separator + "From ").getBytes("US-ASCII");
+            fromEscaped = (separator + ">From ").getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException ex) {
+            // should never happen -- Java is required to support "US-ASCII"
+            fromAtStart = (separator + "From ").getBytes();
+            fromEscaped = (separator + ">From ").getBytes();
         }
-        return buffer.toString();
+        int b = 0;
+        int f = 0;
+        // First, check the degenerate case - message body starts with "From "
+        if (body.length >= 5 && body[0] == 'F' && body[1] == 'r' &&
+            body[2] == 'o' && body[3] == 'm' && body[4] == ' ') {
+            byte leadingFrom[] = {'>', 'F', 'r', 'o', 'm', ' '};
+            out.write(leadingFrom, 0, leadingFrom.length);
+            b = 5;
+        }
+        // Perform a special case of the Knuth-Morris-Pratt search, where only
+        // the first character needs to be checked for a new match whenever a
+        // mismatch is found
+        while (b < body.length - fromAtStart.length) {
+            if (body[b + f] == fromAtStart[f]) {
+                // we have a matching character
+                if (f == fromAtStart.length - 1) {
+                    // we have a full match
+                    out.write(fromEscaped, 0, fromEscaped.length);
+                    b += f + 1;
+                    f = 0;
+                } else {
+                    // continue checking the next character
+                    ++f;
+                }
+            } else {
+                // we have a mismatch ...
+                if (body[b + f] == fromAtStart[0]) {
+                    // ... that is the beginning of a new match
+                    out.write(body, b, f);
+                    b += f;
+                    f = 1;
+                } else {
+                    // ... that does not start a new match
+                    out.write(body, b, 1);
+                    ++b;
+                    f = 0;
+                }
+            }
+        }
+        out.write(body, b, body.length - b);
+        return out.toByteArray();
     }
     
 }
