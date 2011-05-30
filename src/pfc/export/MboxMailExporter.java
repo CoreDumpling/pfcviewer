@@ -145,6 +145,13 @@ public class MboxMailExporter implements Exporter {
         byte fromEscaped[] = (separator + ">From").getBytes();
         int b = 0;
         int f = 0;
+        // First, check the degenerate case - message body starts with "From"
+        if (body.length >= 4 && body[0] == 'F' && body[1] == 'r' &&
+            body[2] == 'o' && body[3] == 'm') {
+            byte leadingFrom[] = {'>', 'F', 'r', 'o', 'm'};
+            out.write(leadingFrom, 0, leadingFrom.length);
+            b = 4;
+        }
         // Perform a special case of the Knuth-Morris-Pratt search, where only
         // the first character needs to be checked for a new match whenever a
         // mismatch is found
