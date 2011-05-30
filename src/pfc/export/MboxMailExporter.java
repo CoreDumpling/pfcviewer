@@ -155,7 +155,7 @@ public class MboxMailExporter implements Exporter {
         int f = 0;
         // First, check the degenerate case - message body starts with "From "
         if (body.length >= 5 && body[0] == 'F' && body[1] == 'r' &&
-            body[2] == 'o' && body[3] == 'm') {
+            body[2] == 'o' && body[3] == 'm' && body[4] == ' ') {
             byte leadingFrom[] = {'>', 'F', 'r', 'o', 'm', ' '};
             out.write(leadingFrom, 0, leadingFrom.length);
             b = 5;
