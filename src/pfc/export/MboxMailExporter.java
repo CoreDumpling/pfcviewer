@@ -140,7 +140,7 @@ public class MboxMailExporter implements Exporter {
      */
     private byte[] indentFromInBody(byte[] body) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        String separator = System.getProperty("line.separator");
+        String separator = "\n";
         byte fromAtStart[];
         byte fromEscaped[];
         try {
